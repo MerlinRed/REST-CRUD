@@ -1,5 +1,6 @@
 import sqlite3
 from sqlite3 import Error
+from functools import wraps
 
 
 class CRUD:
@@ -12,7 +13,7 @@ class CRUD:
         self.cursor.execute(
             """CREATE TABLE IF NOT EXISTS records(
                 id Integer PRIMARY KEY AUTOINCREMENT,
-                name char(30) not null,'
+                name char(30) not null,
                 self_records text not null default "text")""")
         self.connection.commit()
 
@@ -60,11 +61,31 @@ class CRUD:
         user_input = input('Введите номер удаляемой записи: ')
         return user_input
 
-    def exit(self):
+    def close(self):
         self.connection.close()
-        exit()
 
 
+def try_except_decorator(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Error:
+            print(Error)
+        else:
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
+def dec_methods(cls):
+    callable_attributes = {k: v for k, v in cls.__dict__.items() if callable(v)}
+    for name, func in callable_attributes.items():
+        decorated = try_except_decorator(func)
+    return cls
+
+
+@dec_methods
 class DataBaseWorker:
 
     def __init__(self):
@@ -75,40 +96,24 @@ class DataBaseWorker:
         print('Таблица готова к работе')
 
     def insert(self):
-        try:
-            self.work_with_db.insert(user_input=self.work_with_db.insert_input())
-        except Error:
-            print('Ошибка при вставке данных в таблицу')
+        self.work_with_db.insert(user_input=self.work_with_db.insert_input())
 
     def update_name(self):
         # нужно указать номер обновляемой записи
-        try:
-            self.work_with_db.update_name(user_input=self.work_with_db.update_input_name())
-        except Error:
-            print('Ошибка при обновление таблицы')
+        self.work_with_db.update_name(user_input=self.work_with_db.update_input_name())
 
     def update_text(self):
         # нужно указать номер обновляемой записи
-        try:
-            self.work_with_db.update_text(user_input=self.work_with_db.update_input_text())
-        except Error:
-            print('Ошибка при обновление таблицы')
+        self.work_with_db.update_text(user_input=self.work_with_db.update_input_text())
 
     def select(self):
-        try:
-            self.work_with_db.select()
-        except Error:
-            print('Ошибка при выводе содержимого таблицы')
+        self.work_with_db.select()
 
     def delete(self):
-        # нужно указать номер удаляемой записи
-        try:
-            self.work_with_db.delete(user_input=self.work_with_db.delete_input())
-        except Error:
-            print('Ошибка при удаление запись')
+        self.work_with_db.delete(user_input=self.work_with_db.delete_input())
 
 
 work_with_db = DataBaseWorker()
-
+work_with_db.create()
 if __name__ == '__main__':
     work_with_db
