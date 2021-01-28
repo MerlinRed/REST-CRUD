@@ -115,5 +115,3 @@ class DataBaseWorker:
 
 work_with_db = DataBaseWorker()
 work_with_db.create()
-if __name__ == '__main__':
-    work_with_db
