@@ -82,6 +82,7 @@ def dec_methods(cls):
     callable_attributes = {k: v for k, v in cls.__dict__.items() if callable(v)}
     for name, func in callable_attributes.items():
         decorated = try_except_decorator(func)
+        setattr(cls, name, decorated)
     return cls
 
 
